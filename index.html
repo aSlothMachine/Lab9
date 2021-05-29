@@ -46,7 +46,7 @@
     <button>Console Error Demo</button>
     <button>Console Dir</button>
     <button>Console dirxml</button>
-    <button>Console Error</button>
+    <!-- <button>Console Error</button> -->
     <button>Console Group Start</button>
     <button>Console Group End</button>
     <button>Console Table</button>
@@ -55,6 +55,15 @@
     <button>Console Trace</button>
     <button>Trigger a Global Error</button>
   </section>
+
+  
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
+  <script>
+    window.TrackJS && TrackJS.install({ 
+      token: "99610a6c586b42b3844b38e32fc83c67"
+      // for more configuration options, see https://docs.trackjs.com
+    });
+  </script>
 
   <script>
     let calculateBtn = document.querySelector('#calculate');
@@ -66,8 +75,160 @@
       output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
     });
 
+    window.onerror = function (msg, url, lineNo, columnNo, error) {
+      console.log("Caught in global error handler with window.onerror: " + error);
+    };
+    
+    TrackJS.track('Testing TrackJS!');
+
+    class globalError extends Error {
+      constructor(message) {
+        super(message);
+        this.name = "globalError";
+      }
+    }
+
+
+
+
     let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
+    
+    /*Step 2 - Adding Buttons for Console Testing*/
+    console.log(errorBtns); // show which indexes buttons correspond to
     // TODO - Make buttons functional
+
+    // console.log (index 0):
+    errorBtns[0].addEventListener('click', () => {
+      console.log('Console Log Demo');
+    });
+
+    // console.error (index 1):
+    errorBtns[1].addEventListener('click', () => {
+      console.error('Console Error Demo');
+    });
+
+    // console.dir (index 2):
+    errorBtns[2].addEventListener('click', () => {
+      console.dir(document.head); 
+    });
+
+    // console.dirxml (index 3):
+    errorBtns[3].addEventListener('click', () => {
+      console.dirxml(document);  
+    });
+
+    // console.group (start is index 4 and end is index 5):
+    const label = 'Adolescent Irradiated Espionage Tortoises';
+
+    errorBtns[4].addEventListener('click', () => {  
+      console.group(label);
+      console.info('Leo');
+      console.info('Mike');
+      console.info('Don');
+      console.info('Raph');
+    });
+
+    errorBtns[5].addEventListener('click', () => {
+      console.groupEnd(label);  
+    });
+
+    // console.table (index 6):
+    errorBtns[6].addEventListener('click', () => {
+
+      console.table([
+        {
+          first: 'René',
+          last: 'Magritte',
+        },
+        {
+          first: 'Chaim',
+          last: 'Soutine',
+          birthday: '18930113',
+        },
+        {
+          first: 'Henri',
+          last: 'Matisse',
+        }
+      ]);
+    });
+
+    // console.time / console.timeEnd (start timer index 7 and end timer index 8):
+    errorBtns[7].addEventListener('click', () => {
+
+      console.time();
+      console.log('Timer started!');
+
+      for (var i = 0; i < 100000; i++) {
+        let square = i ** 2;
+      }
+
+    });
+
+    errorBtns[8].addEventListener('click', () => {
+      console.timeEnd();
+      console.log('Timer ended!');
+    });
+
+    // console.trace (index 9):
+    errorBtns[9].addEventListener('click', () => {
+
+      const first = () => { second(); };
+      const second = () => { third(); };
+      const third = () => { fourth(); };
+      const fourth = () => { console.trace(); };
+      first();
+
+    });
+
+    // (index 10 is Global error)
+    errorBtns[10].addEventListener('click', () => {
+      throw new globalError("Triggered a Global Error!");
+    });
+
+    /*Step 3 - Trying Try/Catch*/
+    let json = '{ "age": 30 }'; // incomplete data
+    let user = JSON.parse(json); // <-- no errors
+
+    try {
+      // run this code
+      // let user = JSON.parse(json); // <-- no errors
+      
+      if (!user.name) {
+        throw new SyntaxError("Incomplete data: no name"); // (*)
+      }
+
+      console.log(user.name);
+
+    } catch (err) {
+      // if an error happened, then jump here
+      // err is the error object
+      console.log( "JSON Error: " + err.message ); // JSON Error: Incomplete data: no name
+
+    } finally {
+      // do in any case after try/catch
+      console.log("Printing available JSON data: " + user.age);
+    }
+
+    /* Step 4 - Throw and Custom Errors */
+    class myCustomError extends Error {
+      constructor(message) {
+        super(message); 
+        this.name = "myCustomError"; 
+      }
+    }
+
+    function test() {
+      throw new myCustomError("Throwing Step 4 custom error class!");
+    }
+
+    try {
+      test();
+
+    } catch(err) {
+      console.log(err.message);   // 1. "Throwing Step 4 custom error class!"
+      console.log(err.name);      // 2. "MyCustomError"
+      console.log(err.stack);     // 3. Stack printing 
+    }
   </script>
 </body>
 </html>
